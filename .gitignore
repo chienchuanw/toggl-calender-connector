@@ -1,0 +1,43 @@
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Virtual environment (if not using Poetry's built-in venv)
+.venv/
+env/
+venv/
+
+# dotenv file for API keys and credentials
+.env
+
+# Poetry files
+poetry.lock
+
+# VSCode settings (if you're using VSCode)
+.vscode/
+
+# MacOS
+.DS_Store
+
+# Google credentials file (contains sensitive info)
+credentials.json
+token.json
+
+# Logs
+*.log
+
+# Pytest / coverage
+.coverage
+htmlcov/
+.tox/
+.pytest_cache/
+.cache/
+
+# MyPy / other linters
+.mypy_cache/
+.dmypy.json
+.pyre/
+
+# Jupyter notebook checkpoints (just in case)
+.ipynb_checkpoints/

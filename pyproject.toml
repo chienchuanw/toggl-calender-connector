@@ -1,0 +1,20 @@
+[project]
+name = "toggl-calendar-connector"
+version = "0.1.0"
+description = ""
+authors = [
+    {name = "chienchuanw",email = "chienchuanwww@gmail.com"}
+]
+readme = "README.md"
+requires-python = ">=3.12"
+dependencies = [
+    "requests (>=2.32.3,<3.0.0)",
+    "google-api-python-client (>=2.166.0,<3.0.0)",
+    "google-auth-httplib2 (>=0.2.0,<0.3.0)",
+    "google-auth-oauthlib (>=1.2.1,<2.0.0)"
+]
+
+
+[build-system]
+requires = ["poetry-core>=2.0.0,<3.0.0"]
+build-backend = "poetry.core.masonry.api"
