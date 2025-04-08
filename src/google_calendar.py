@@ -8,6 +8,7 @@ from google_auth_oauthlib.flow import InstalledAppFlow
 from googleapiclient.discovery import build
 
 SCOPES = ["https://www.googleapis.com/auth/calendar"]
+GOOGLE_CALENDAR_ID = os.environ.get("GOOGLE_CALENDAR_ID", "primary")
 
 
 def get_calendar_service():
@@ -34,7 +35,9 @@ def create_event(service, description, start_time, end_time):
             "timeZone": "Asia/Taipei",
         },
     }
-    created_event = service.events().insert(calendarId="primary", body=event).execute()
+    created_event = (
+        service.events().insert(calendarId=GOOGLE_CALENDAR_ID, body=event).execute()
+    )
     print(
         f"Created event: {created_event.get('summary')} @ {created_event.get('start').get('dateTime')}"
     )
