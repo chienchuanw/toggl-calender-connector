@@ -32,13 +32,3 @@ class TogglClient:
         else:
             print(f"Error: {response.status_code} - {response.text}")
             return []
-
-
-# 範例測試
-if __name__ == "__main__":
-    client = TogglClient()
-    today = datetime.today().strftime("%Y-%m-%d")
-    data = client.get_time_entries(today, today)
-    print(f"There are {len(data)} entries today:")
-    for entry in data:
-        print(entry)
