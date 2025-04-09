@@ -17,7 +17,7 @@ from rich.style import Style
 from rich.theme import Theme
 from src.clients.toggl_client import TogglClient
 from src.clients.google_client import get_calendar_service
-from src.utils.google_calendar import create_event
+from src.utils.google_calendar import create_event, list_calendars, update_calendar_id
 
 # 定義賽博朋克風格的主題
 cyberpunk_theme = Theme(
@@ -84,6 +84,7 @@ def display_menu() -> None:
         {"key": "2", "name": "同步過去 7 天的時間條目", "cmd": "sync --days 7"},
         {"key": "3", "name": "預覽模式（不實際創建事件）", "cmd": "sync --preview"},
         {"key": "4", "name": "自定義同步選項", "cmd": "custom"},
+        {"key": "5", "name": "列出並設置 Google 日曆", "cmd": "calendars"},
         {"key": "v", "name": "查看版本信息", "cmd": "version"},
         {"key": "q", "name": "退出程序", "cmd": "exit"},
     ]
@@ -223,7 +224,7 @@ def sync(
     console.clear()
 
     # 使用 pyfiglet 生成 ASCII 藝術標題
-    header_art = generate_header("Sync Mode", "small")
+    header_art = generate_header("Sync Mode", "banner")
     console.print(f"[bright_green]{header_art}[/bright_green]")
     console.print("[bright_green]" + "-" * 70 + "[/bright_green]\n")
 
@@ -312,6 +313,108 @@ def sync(
             f"\n[bright_green]>>> 成功! 同步了 {len(entries)} 個事件到 Google 日曆[/bright_green]"
         )
         console.print("[bright_green]" + "-" * 70 + "[/bright_green]")
+
+    except Exception as e:
+        console.print(f"[bright_red]>>> 錯誤: {str(e)}[/bright_red]")
+        console.print("[bright_green]" + "-" * 70 + "[/bright_green]")
+        raise typer.Exit(code=1)
+
+
+@app.command()
+def calendars():
+    """列出所有可用的 Google 日曆和它們的 ID，並允許用戶選擇一個設置為預設日曆"""
+    console.clear()
+
+    # 使用 pyfiglet 生成 ASCII 藝術標題
+    header_art = generate_header("Calendars", "small")
+    console.print(f"[bright_green]{header_art}[/bright_green]")
+    console.print("[bright_green]" + "-" * 70 + "[/bright_green]\n")
+
+    try:
+        with console.status(
+            "[bright_green]>>> 正在連接到 Google Calendar...[/bright_green]",
+            spinner="dots",
+        ):
+            service = get_calendar_service()
+            calendars_list = list_calendars(service)
+
+        if not calendars_list:
+            console.print("[bright_yellow]>>> 警告: 找不到任何日曆！[/bright_yellow]")
+            return
+
+        # 顯示找到的日曆
+        console.print(
+            f"[bright_green]>>> 找到 {len(calendars_list)} 個日曆[/bright_green]\n"
+        )
+
+        table = Table(title="Google 日曆清單", box=ASCII, border_style="bright_green")
+        table.add_column("序號", style="bright_green", justify="center")
+        table.add_column("日曆名稱", style="bright_green")
+        table.add_column("日曆 ID", style="bright_green")
+        table.add_column("是否主要日曆", style="bright_green")
+        table.add_column("目前使用", style="bright_green")
+
+        # 獲取當前設定的日曆 ID
+        import os
+        from dotenv import load_dotenv
+        load_dotenv()
+        current_calendar_id = os.getenv("GOOGLE_CALENDAR_ID", "primary")
+
+        # 給每個日曆給序號
+        calendar_options = {}
+        for i, calendar in enumerate(calendars_list, 1):
+            calendar_id = calendar.get("id", "")
+            is_current = calendar_id == current_calendar_id
+            table.add_row(
+                str(i),
+                calendar.get("summary", "未命名"),
+                calendar_id,
+                "是" if calendar.get("primary", False) else "否",
+                ">>> " if is_current else "",
+            )
+            calendar_options[str(i)] = calendar_id
+
+        console.print(table)
+        console.print("\n[bright_green]" + "-" * 70 + "[/bright_green]")
+
+        # 討論用戶選擇
+        choice = Prompt.ask(
+            "[bright_green]> 請選擇要設置的日曆序號 (輸入 q 返回主選單)[/bright_green]",
+            choices=[*list(calendar_options.keys()), "q"],
+            show_choices=False,
+        )
+        
+        if choice.lower() == "q":
+            console.print("[bright_green]>>> 返回主選單[/bright_green]")
+            display_menu()
+            return
+
+        # 獲取所選日曆的 ID
+        selected_calendar_id = calendar_options[choice]
+        selected_calendar_name = ""
+        for calendar in calendars_list:
+            if calendar.get("id") == selected_calendar_id:
+                selected_calendar_name = calendar.get("summary", "未命名")
+                break
+
+        # 確認是否更新
+        confirm_update = Confirm.ask(
+            f"[bright_green]>>> 確認將 '{selected_calendar_name}' 設置為預設日曆？[/bright_green]",
+            default=True,
+        )
+        
+        if not confirm_update:
+            console.print("[bright_yellow]>>> 取消設置[/bright_yellow]")
+            return
+
+        # 更新 .env 文件
+        success = update_calendar_id(selected_calendar_id)
+        
+        if success:
+            console.print(f"[bright_green]>>> 成功將 '{selected_calendar_name}' 設置為預設日曆![/bright_green]")
+            console.print("[bright_green]>>> 已更新 .env 文件[/bright_green]")
+        else:
+            console.print("[bright_red]>>> 設置日曆失敗[/bright_red]")
 
     except Exception as e:
         console.print(f"[bright_red]>>> 錯誤: {str(e)}[/bright_red]")
