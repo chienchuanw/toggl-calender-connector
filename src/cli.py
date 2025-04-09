@@ -5,6 +5,7 @@ import os
 import typer
 import sys
 import pyfiglet
+import pytz
 from datetime import datetime, timedelta
 from typing import Optional, List, Dict, Any
 from rich.console import Console
@@ -15,7 +16,7 @@ from rich.text import Text
 from rich.box import ASCII, SQUARE
 from rich.style import Style
 from rich.theme import Theme
-from src.clients.toggl_client import togglClient
+from src.clients.toggl_client import TogglClient
 from src.clients.google_client import get_calendar_service
 from src.utils.google_calendar import create_event, list_calendars, update_calendar_id
 
@@ -43,6 +44,61 @@ app = typer.Typer(
     help="同步 toggl 時間條目到 Google 日曆的 CLI 工具", add_completion=False
 )
 console = Console(theme=cyberpunk_theme, highlight=False)
+
+
+def format_time_display(time_str: str) -> str:
+    """
+    將 ISO 格式的時間字串轉換為更易讀的格式
+    格式化為 YYYY-MM-DD hh:mm:ss AM/PM (台灣時間)
+
+    Args:
+        time_str: ISO 格式的時間字串
+
+    Returns:
+        str: 格式化後的時間字串
+    """
+    try:
+        # 解析 ISO 格式時間
+        dt = datetime.fromisoformat(time_str.replace("Z", "+00:00"))
+
+        # 轉換為台灣時區
+        taiwan_tz = pytz.timezone("Asia/Taipei")
+        dt = dt.astimezone(taiwan_tz)
+
+        # 格式化為所需格式 YYYY-MM-DD hh:mm:ss AM/PM
+        return dt.strftime("%Y-%m-%d %I:%M:%S %p")
+    except Exception as e:
+        # 如果解析失敗，返回原始字串
+        return time_str
+
+
+def calculate_duration(start_time: str, end_time: str) -> str:
+    """
+    計算兩個時間點之間的持續時間，並以 HH:MM:SS 格式返回
+
+    Args:
+        start_time: 開始時間，ISO 格式字串
+        end_time: 結束時間，ISO 格式字串
+
+    Returns:
+        str: 格式化的持續時間
+    """
+    try:
+        # 解析時間字串
+        start_dt = datetime.fromisoformat(start_time.replace("Z", "+00:00"))
+        end_dt = datetime.fromisoformat(end_time.replace("Z", "+00:00"))
+
+        # 計算差異（秒數）
+        duration_seconds = (end_dt - start_dt).total_seconds()
+
+        # 轉換為 HH:MM:SS 格式
+        hours, remainder = divmod(duration_seconds, 3600)
+        minutes, seconds = divmod(remainder, 60)
+
+        return f"{int(hours):02d}:{int(minutes):02d}:{int(seconds):02d}"
+    except Exception as e:
+        # 如果計算失敗，返回空字串
+        return "--:--:--"
 
 
 def generate_header(text: str = "toggl Calendar", font: str = "slant") -> str:
@@ -250,7 +306,7 @@ def sync(
     )
 
     try:
-        client = togglClient()
+        client = TogglClient()
 
         with console.status(
             "[bright_green]>>> 正在取得 toggl 時間條目...[/bright_green]",
@@ -268,12 +324,22 @@ def sync(
         )
 
         table = Table(title=f"時間條目清單", box=ASCII, border_style="bright_green")
-        table.add_column("描述", style="bright_green")
+        table.add_column("事件", style="bright_green")
         table.add_column("開始時間", style="bright_green")
         table.add_column("結束時間", style="bright_green")
+        table.add_column("時長", style="bright_green")
 
         for entry in entries:
-            table.add_row(entry["description"], entry["start"], entry["end"])
+            # 格式化時間顯示
+            formatted_start = format_time_display(entry["start"])
+            formatted_end = format_time_display(entry["end"])
+
+            # 計算時長
+            duration = calculate_duration(entry["start"], entry["end"])
+
+            table.add_row(
+                entry["description"], formatted_start, formatted_end, duration
+            )
 
         console.print(table)
         console.print("\n[bright_green]" + "-" * 70 + "[/bright_green]\n")

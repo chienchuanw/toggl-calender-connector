@@ -10,7 +10,7 @@ TOGGL_API_TOKEN = os.getenv("TOGGL_API_TOKEN")
 TOGGL_WORKSPACE_ID = os.getenv("TOGGL_WORKSPACE_ID")
 
 
-class togglClient:
+class TogglClient:
     """
     toggl API 客戶端，用於獲取時間追蹤記錄。
     """
