@@ -316,6 +316,10 @@ def sync(
 
         if not entries:
             console.print("[bright_yellow]>>> 警告: 找不到時間條目！[/bright_yellow]")
+            # 返回主選單
+            console.print("\n[bright_green]" + "-" * 70 + "[/bright_green]")
+            Prompt.ask("[bright_green]>>> 按 Enter 返回主選單[/bright_green]", default="")
+            display_menu()
             return
 
         # 顯示找到的時間條目
@@ -349,6 +353,10 @@ def sync(
             console.print(
                 "[bright_yellow]>>> 預覽模式: 不會創建實際事件[/bright_yellow]"
             )
+            # 返回主選單
+            console.print("\n[bright_green]" + "-" * 70 + "[/bright_green]")
+            Prompt.ask("[bright_green]>>> 按 Enter 返回主選單[/bright_green]", default="")
+            display_menu()
             return
 
         # 確認是否繼續
@@ -358,6 +366,10 @@ def sync(
         )
         if not continue_sync:
             console.print("[bright_yellow]>>> 同步已取消[/bright_yellow]")
+            # 返回主選單
+            console.print("\n[bright_green]" + "-" * 70 + "[/bright_green]")
+            Prompt.ask("[bright_green]>>> 按 Enter 返回主選單[/bright_green]", default="")
+            display_menu()
             return
 
         # 連接 Google Calendar 並創建事件
@@ -379,11 +391,20 @@ def sync(
             f"\n[bright_green]>>> 成功! 同步了 {len(entries)} 個事件到 Google 日曆[/bright_green]"
         )
         console.print("[bright_green]" + "-" * 70 + "[/bright_green]")
+        
+        # 返回主選單
+        Prompt.ask("[bright_green]>>> 按 Enter 返回主選單[/bright_green]", default="")
+        display_menu()
+        return
 
     except Exception as e:
         console.print(f"[bright_red]>>> 錯誤: {str(e)}[/bright_red]")
         console.print("[bright_green]" + "-" * 70 + "[/bright_green]")
-        raise typer.Exit(code=1)
+        
+        # 錯誤後返回主選單
+        Prompt.ask("[bright_green]>>> 按 Enter 返回主選單[/bright_green]", default="")
+        display_menu()
+        return
 
 
 @app.command()
@@ -406,6 +427,10 @@ def calendars():
 
         if not calendars_list:
             console.print("[bright_yellow]>>> 警告: 找不到任何日曆！[/bright_yellow]")
+            # 返回主選單
+            console.print("\n[bright_green]" + "-" * 70 + "[/bright_green]")
+            Prompt.ask("[bright_green]>>> 按 Enter 返回主選單[/bright_green]", default="")
+            display_menu()
             return
 
         # 顯示找到的日曆
@@ -472,6 +497,10 @@ def calendars():
 
         if not confirm_update:
             console.print("[bright_yellow]>>> 取消設置[/bright_yellow]")
+            # 返回主選單
+            console.print("\n[bright_green]" + "-" * 70 + "[/bright_green]")
+            Prompt.ask("[bright_green]>>> 按 Enter 返回主選單[/bright_green]", default="")
+            display_menu()
             return
 
         # 更新 .env 文件
@@ -484,11 +513,21 @@ def calendars():
             console.print("[bright_green]>>> 已更新 .env 文件[/bright_green]")
         else:
             console.print("[bright_red]>>> 設置日曆失敗[/bright_red]")
+            
+        # 返回主選單
+        console.print("\n[bright_green]" + "-" * 70 + "[/bright_green]")
+        Prompt.ask("[bright_green]>>> 按 Enter 返回主選單[/bright_green]", default="")
+        display_menu()
+        return
 
     except Exception as e:
         console.print(f"[bright_red]>>> 錯誤: {str(e)}[/bright_red]")
         console.print("[bright_green]" + "-" * 70 + "[/bright_green]")
-        raise typer.Exit(code=1)
+        
+        # 錯誤後返回主選單
+        Prompt.ask("[bright_green]>>> 按 Enter 返回主選單[/bright_green]", default="")
+        display_menu()
+        return
 
 
 @app.command()
@@ -514,6 +553,10 @@ def version():
         "[bright_green]>>> TOGGL CALENDAR CONNECTOR - 賦予你掌控時間的能力[/bright_green]\n"
     )
     console.print("[bright_green]" + "-" * 70 + "[/bright_green]")
+    
+    # 返回主選單
+    Prompt.ask("[bright_green]>>> 按 Enter 返回主選單[/bright_green]", default="")
+    display_menu()
 
 
 @app.callback(invoke_without_command=True)
