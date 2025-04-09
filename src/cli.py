@@ -46,6 +46,19 @@ app = typer.Typer(
 console = Console(theme=cyberpunk_theme, highlight=False)
 
 
+def return_to_menu(message: str = "按 Enter 返回主選單") -> None:
+    """
+    顯示提示訊息並返回主選單
+    
+    Args:
+        message: 要顯示的提示訊息，默認為「按 Enter 返回主選單」
+    """
+    console.print("\n[bright_green]" + "-" * 70 + "[/bright_green]")
+    Prompt.ask(f"[bright_green]>>> {message}[/bright_green]", default="")
+    display_menu()
+    return
+
+
 def format_time_display(time_str: str) -> str:
     """
     將 ISO 格式的時間字串轉換為更易讀的格式
@@ -235,7 +248,7 @@ def handle_custom_sync() -> None:
     )
     if not continue_process:
         console.print("[bright_green]>>> 操作已取消[/bright_green]")
-        display_menu()
+        return_to_menu()
         return
 
     # 構建參數
@@ -316,10 +329,7 @@ def sync(
 
         if not entries:
             console.print("[bright_yellow]>>> 警告: 找不到時間條目！[/bright_yellow]")
-            # 返回主選單
-            console.print("\n[bright_green]" + "-" * 70 + "[/bright_green]")
-            Prompt.ask("[bright_green]>>> 按 Enter 返回主選單[/bright_green]", default="")
-            display_menu()
+            return_to_menu()
             return
 
         # 顯示找到的時間條目
@@ -353,10 +363,7 @@ def sync(
             console.print(
                 "[bright_yellow]>>> 預覽模式: 不會創建實際事件[/bright_yellow]"
             )
-            # 返回主選單
-            console.print("\n[bright_green]" + "-" * 70 + "[/bright_green]")
-            Prompt.ask("[bright_green]>>> 按 Enter 返回主選單[/bright_green]", default="")
-            display_menu()
+            return_to_menu()
             return
 
         # 確認是否繼續
@@ -366,10 +373,7 @@ def sync(
         )
         if not continue_sync:
             console.print("[bright_yellow]>>> 同步已取消[/bright_yellow]")
-            # 返回主選單
-            console.print("\n[bright_green]" + "-" * 70 + "[/bright_green]")
-            Prompt.ask("[bright_green]>>> 按 Enter 返回主選單[/bright_green]", default="")
-            display_menu()
+            return_to_menu()
             return
 
         # 連接 Google Calendar 並創建事件
@@ -392,18 +396,14 @@ def sync(
         )
         console.print("[bright_green]" + "-" * 70 + "[/bright_green]")
         
-        # 返回主選單
-        Prompt.ask("[bright_green]>>> 按 Enter 返回主選單[/bright_green]", default="")
-        display_menu()
+        return_to_menu()
         return
 
     except Exception as e:
         console.print(f"[bright_red]>>> 錯誤: {str(e)}[/bright_red]")
         console.print("[bright_green]" + "-" * 70 + "[/bright_green]")
         
-        # 錯誤後返回主選單
-        Prompt.ask("[bright_green]>>> 按 Enter 返回主選單[/bright_green]", default="")
-        display_menu()
+        return_to_menu()
         return
 
 
@@ -427,10 +427,7 @@ def calendars():
 
         if not calendars_list:
             console.print("[bright_yellow]>>> 警告: 找不到任何日曆！[/bright_yellow]")
-            # 返回主選單
-            console.print("\n[bright_green]" + "-" * 70 + "[/bright_green]")
-            Prompt.ask("[bright_green]>>> 按 Enter 返回主選單[/bright_green]", default="")
-            display_menu()
+            return_to_menu()
             return
 
         # 顯示找到的日曆
@@ -497,10 +494,7 @@ def calendars():
 
         if not confirm_update:
             console.print("[bright_yellow]>>> 取消設置[/bright_yellow]")
-            # 返回主選單
-            console.print("\n[bright_green]" + "-" * 70 + "[/bright_green]")
-            Prompt.ask("[bright_green]>>> 按 Enter 返回主選單[/bright_green]", default="")
-            display_menu()
+            return_to_menu()
             return
 
         # 更新 .env 文件
@@ -513,20 +507,15 @@ def calendars():
             console.print("[bright_green]>>> 已更新 .env 文件[/bright_green]")
         else:
             console.print("[bright_red]>>> 設置日曆失敗[/bright_red]")
-            
-        # 返回主選單
-        console.print("\n[bright_green]" + "-" * 70 + "[/bright_green]")
-        Prompt.ask("[bright_green]>>> 按 Enter 返回主選單[/bright_green]", default="")
-        display_menu()
+        
+        return_to_menu()
         return
 
     except Exception as e:
         console.print(f"[bright_red]>>> 錯誤: {str(e)}[/bright_red]")
         console.print("[bright_green]" + "-" * 70 + "[/bright_green]")
         
-        # 錯誤後返回主選單
-        Prompt.ask("[bright_green]>>> 按 Enter 返回主選單[/bright_green]", default="")
-        display_menu()
+        return_to_menu()
         return
 
 
@@ -554,9 +543,7 @@ def version():
     )
     console.print("[bright_green]" + "-" * 70 + "[/bright_green]")
     
-    # 返回主選單
-    Prompt.ask("[bright_green]>>> 按 Enter 返回主選單[/bright_green]", default="")
-    display_menu()
+    return_to_menu()
 
 
 @app.callback(invoke_without_command=True)
