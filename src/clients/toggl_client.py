@@ -10,21 +10,21 @@ TOGGL_API_TOKEN = os.getenv("TOGGL_API_TOKEN")
 TOGGL_WORKSPACE_ID = os.getenv("TOGGL_WORKSPACE_ID")
 
 
-class TogglClient:
+class togglClient:
     """
-    Toggl API 客戶端，用於獲取時間追蹤記錄。
+    toggl API 客戶端，用於獲取時間追蹤記錄。
     """
 
     def __init__(self):
         """
-        初始化 Toggl 客戶端，設置認證和基礎 URL。
+        初始化 toggl 客戶端，設置認證和基礎 URL。
         """
         self.auth = (TOGGL_API_TOKEN, "api_token")
         self.base_url = "https://api.track.toggl.com/reports/api/v2"
 
     def get_time_entries(self, start_date: str, end_date: str) -> List[Dict[str, Any]]:
         """
-        從 Toggl 獲取指定日期範圍內的時間記錄。
+        從 toggl 獲取指定日期範圍內的時間記錄。
 
         Args:
             start_date: 開始日期，格式為 'YYYY-MM-DD'

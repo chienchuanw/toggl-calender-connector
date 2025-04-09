@@ -15,7 +15,7 @@ from rich.text import Text
 from rich.box import ASCII, SQUARE
 from rich.style import Style
 from rich.theme import Theme
-from src.clients.toggl_client import TogglClient
+from src.clients.toggl_client import togglClient
 from src.clients.google_client import get_calendar_service
 from src.utils.google_calendar import create_event, list_calendars, update_calendar_id
 
@@ -40,12 +40,12 @@ cyberpunk_theme = Theme(
 )
 
 app = typer.Typer(
-    help="同步 Toggl 時間條目到 Google 日曆的 CLI 工具", add_completion=False
+    help="同步 toggl 時間條目到 Google 日曆的 CLI 工具", add_completion=False
 )
 console = Console(theme=cyberpunk_theme, highlight=False)
 
 
-def generate_header(text: str = "Toggl Calendar", font: str = "slant") -> str:
+def generate_header(text: str = "toggl Calendar", font: str = "slant") -> str:
     """
     使用 pyfiglet 生成 ASCII 藝術風格的標題
 
@@ -217,7 +217,7 @@ def sync(
     ),
 ) -> None:
     """
-    將 Toggl 時間條目同步到 Google 日曆。
+    將 toggl 時間條目同步到 Google 日曆。
 
     如果未指定日期，默認使用今天的日期。
     """
@@ -250,10 +250,10 @@ def sync(
     )
 
     try:
-        client = TogglClient()
+        client = togglClient()
 
         with console.status(
-            "[bright_green]>>> 正在取得 Toggl 時間條目...[/bright_green]",
+            "[bright_green]>>> 正在取得 toggl 時間條目...[/bright_green]",
             spinner="dots",
         ):
             entries = client.get_time_entries(calculated_start_date, end_date_str)
@@ -357,6 +357,7 @@ def calendars():
         # 獲取當前設定的日曆 ID
         import os
         from dotenv import load_dotenv
+
         load_dotenv()
         current_calendar_id = os.getenv("GOOGLE_CALENDAR_ID", "primary")
 
@@ -383,7 +384,7 @@ def calendars():
             choices=[*list(calendar_options.keys()), "q"],
             show_choices=False,
         )
-        
+
         if choice.lower() == "q":
             console.print("[bright_green]>>> 返回主選單[/bright_green]")
             display_menu()
@@ -402,16 +403,18 @@ def calendars():
             f"[bright_green]>>> 確認將 '{selected_calendar_name}' 設置為預設日曆？[/bright_green]",
             default=True,
         )
-        
+
         if not confirm_update:
             console.print("[bright_yellow]>>> 取消設置[/bright_yellow]")
             return
 
         # 更新 .env 文件
         success = update_calendar_id(selected_calendar_id)
-        
+
         if success:
-            console.print(f"[bright_green]>>> 成功將 '{selected_calendar_name}' 設置為預設日曆![/bright_green]")
+            console.print(
+                f"[bright_green]>>> 成功將 '{selected_calendar_name}' 設置為預設日曆![/bright_green]"
+            )
             console.print("[bright_green]>>> 已更新 .env 文件[/bright_green]")
         else:
             console.print("[bright_red]>>> 設置日曆失敗[/bright_red]")
@@ -434,7 +437,7 @@ def version():
 
     console.print("\n[bright_green]>>> TOGGL CALENDAR CONNECTOR v0.1.0[/bright_green]")
     console.print(
-        "[bright_green]>>> 將 Toggl 時間條目同步到 Google 日曆的工具[/bright_green]\n"
+        "[bright_green]>>> 將 toggl 時間條目同步到 Google 日曆的工具[/bright_green]\n"
     )
 
     # 添加類似於示例圖像的標語

@@ -1,1 +1,1 @@
-"""Toggl Calendar Connector 主模組"""
+"""toggl Calendar Connector 主模組"""

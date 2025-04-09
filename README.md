@@ -1,10 +1,10 @@
-# Toggl Calendar Connector
+# toggl Calendar Connector
 
-一個將 Toggl 工時追蹤記錄同步到 Google 日曆的命令行工具。
+一個將 toggl 工時追蹤記錄同步到 Google 日曆的命令行工具。
 
 ## 功能
 
-- 從 Toggl 獲取工時記錄
+- 從 toggl 獲取工時記錄
 - 將這些記錄轉換為 Google 日曆事件
 - 支持自定義日期範圍
 - 提供預覽模式
