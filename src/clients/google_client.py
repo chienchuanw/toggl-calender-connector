@@ -2,11 +2,12 @@ import os
 from google.oauth2.credentials import Credentials
 from google_auth_oauthlib.flow import InstalledAppFlow
 from googleapiclient.discovery import build
+from typing import Any
 
 SCOPES = ["https://www.googleapis.com/auth/calendar"]
 
 
-def get_calendar_service():
+def get_calendar_service() -> Any:
     """
     建立和返回 Google Calendar API 服務實例。
 

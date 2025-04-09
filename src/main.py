@@ -2,14 +2,15 @@ from clients.toggl_client import TogglClient
 from clients.google_client import get_calendar_service
 from utils.google_calendar import create_event
 from datetime import datetime
+from typing import List, Dict, Any, Optional
 
 """
-主要程序模块，用於將 Toggl 記錄的時間條目同步到 Google 日曆中。
-此模块會載入今天的 Toggl 時間記錄，並將每個記錄在 Google 日曆中創建對應的事件。
+主要程序模塊，用於將 Toggl 記錄的時間條目同步到 Google 日曆中。
+此模塊會載入今天的 Toggl 時間記錄，並將每個記錄在 Google 日曆中創建對應的事件。
 """
 
 
-def main():
+def main() -> None:
     """
     主程序入口點，起動同步過程。
 

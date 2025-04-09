@@ -2,6 +2,7 @@ import os
 import requests
 from dotenv import load_dotenv
 from datetime import datetime
+from typing import List, Dict, Any, Optional
 
 load_dotenv()
 
@@ -21,7 +22,7 @@ class TogglClient:
         self.auth = (TOGGL_API_TOKEN, "api_token")
         self.base_url = "https://api.track.toggl.com/reports/api/v2"
 
-    def get_time_entries(self, start_date: str, end_date: str):
+    def get_time_entries(self, start_date: str, end_date: str) -> List[Dict[str, Any]]:
         """
         從 Toggl 獲取指定日期範圍內的時間記錄。
 

@@ -1,9 +1,10 @@
 import os
+from typing import Any, Dict, Optional
 
 GOOGLE_CALENDAR_ID = os.environ.get("GOOGLE_CALENDAR_ID", "primary")
 
 
-def create_event(service, description, start_time, end_time):
+def create_event(service: Any, description: str, start_time: str, end_time: str) -> Optional[Dict[str, Any]]:
     """
     在 Google Calendar 中創建一個新的事件。
 
