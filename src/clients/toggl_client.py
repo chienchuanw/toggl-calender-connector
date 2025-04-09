@@ -1,5 +1,3 @@
-# src/toggl_client.py
-
 import os
 import requests
 from dotenv import load_dotenv
@@ -15,6 +13,7 @@ class TogglClient:
     """
     Toggl API 客戶端，用於獲取時間追蹤記錄。
     """
+
     def __init__(self):
         """
         初始化 Toggl 客戶端，設置認證和基礎 URL。
@@ -25,11 +24,11 @@ class TogglClient:
     def get_time_entries(self, start_date: str, end_date: str):
         """
         從 Toggl 獲取指定日期範圍內的時間記錄。
-        
+
         Args:
             start_date: 開始日期，格式為 'YYYY-MM-DD'
             end_date: 結束日期，格式為 'YYYY-MM-DD'
-            
+
         Returns:
             list: 時間記錄列表，每條記錄包含描述、開始時間和結束時間等信息
             如果請求失敗則返回空列表

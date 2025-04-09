@@ -1,5 +1,6 @@
-from src.toggl_client import TogglClient
-from src.google_calendar import get_calendar_service, create_event
+from clients.toggl_client import TogglClient
+from clients.google_client import get_calendar_service
+from utils.google_calendar import create_event
 from datetime import datetime
 
 """
@@ -7,10 +8,11 @@ from datetime import datetime
 此模块會載入今天的 Toggl 時間記錄，並將每個記錄在 Google 日曆中創建對應的事件。
 """
 
+
 def main():
     """
     主程序入口點，起動同步過程。
-    
+
     流程：
     1. 初始化 Toggl 和 Google Calendar 的客戶端。
     2. 取得今天的日期。
