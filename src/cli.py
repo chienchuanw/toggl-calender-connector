@@ -2,15 +2,20 @@
 # src/cli.py
 
 import typer
+import sys
 from datetime import datetime, timedelta
-from typing import Optional, List
+from typing import Optional, List, Dict, Any
 from rich.console import Console
 from rich.table import Table
+from rich.panel import Panel
+from rich.prompt import Prompt
+from rich.text import Text
+from rich.box import ROUNDED
 from src.clients.toggl_client import TogglClient
 from src.clients.google_client import get_calendar_service
 from src.utils.google_calendar import create_event
 
-app = typer.Typer(help="同步 Toggl 時間條目到 Google 日曆的 CLI 工具")
+app = typer.Typer(help="同步 Toggl 時間條目到 Google 日曆的 CLI 工具", add_completion=False)
 console = Console()
 
 
@@ -106,6 +111,104 @@ def version():
     """顯示版本信息"""
     console.print("[bold]Toggl Calendar Connector[/] [cyan]v0.1.0[/]")
     console.print("將 Toggl 時間條目同步到 Google 日曆的工具")
+
+
+def display_menu() -> None:
+    """顯示交互式選單"""
+    console.clear()
+    text = Text()
+    text.append("\n Toggl Calendar Connector ", style="bold white on blue")
+    text.append(" v0.1.0\n", style="bold cyan")
+    
+    console.print(Panel.fit(
+        text,
+        title="歡迎",
+        border_style="blue",
+        box=ROUNDED
+    ))
+    
+    menu_items = [
+        {"key": "1", "name": "同步今天的時間條目", "cmd": "sync"},
+        {"key": "2", "name": "同步過去 7 天的時間條目", "cmd": "sync --days 7"},
+        {"key": "3", "name": "預覽模式（不實際創建事件）", "cmd": "sync --preview"},
+        {"key": "4", "name": "自定義同步選項", "cmd": "custom"},
+        {"key": "v", "name": "查看版本信息", "cmd": "version"},
+        {"key": "q", "name": "退出程序", "cmd": "exit"}
+    ]
+    
+    table = Table(show_header=False, box=ROUNDED, border_style="blue")
+    table.add_column("選項", style="cyan", justify="center")
+    table.add_column("描述", style="white")
+    
+    for item in menu_items:
+        table.add_row(f"[bold]{item['key']}[/bold]", item["name"])
+    
+    console.print(table)
+    console.print()
+    
+    choice = Prompt.ask("請選擇一個選項", choices=[item["key"] for item in menu_items])
+    
+    # 處理用戶選擇
+    for item in menu_items:
+        if item["key"] == choice:
+            if item["cmd"] == "exit":
+                console.print("[bold]感謝使用！再見！[/bold]")
+                sys.exit(0)
+            elif item["cmd"] == "custom":
+                handle_custom_sync()
+            else:
+                # 執行指定的命令
+                console.clear()
+                sys.argv = ["toggl-calendar"] + item["cmd"].split()
+                app()
+                break
+
+
+def handle_custom_sync() -> None:
+    """處理自定義同步選項"""
+    console.clear()
+    console.print(Panel.fit(
+        "自定義同步選項",
+        title="設定", 
+        border_style="green",
+        box=ROUNDED
+    ))
+    
+    # 詢問參數
+    start_date = Prompt.ask(
+        "開始日期 (YYYY-MM-DD)", 
+        default=datetime.today().strftime("%Y-%m-%d")
+    )
+    
+    end_date = Prompt.ask(
+        "結束日期 (YYYY-MM-DD)", 
+        default=start_date
+    )
+    
+    preview = Prompt.ask(
+        "預覽模式 (只顯示不創建事件)", 
+        choices=["y", "n"], 
+        default="n"
+    ) == "y"
+    
+    # 構建參數
+    args = ["toggl-calendar", "sync", "--start-date", start_date, "--end-date", end_date]
+    if preview:
+        args.append("--preview")
+    
+    # 執行命令
+    console.clear()
+    sys.argv = args
+    app()
+
+
+@app.callback(invoke_without_command=True)
+def main(ctx: typer.Context) -> None:
+    """主程序回調函數"""
+    # 如果沒有提供子命令且是直接運行，顯示選單
+    # 這樣在使用 CLI 參數時不會顯示選單
+    if ctx.invoked_subcommand is None and len(sys.argv) <= 2:
+        display_menu()
 
 
 if __name__ == "__main__":
