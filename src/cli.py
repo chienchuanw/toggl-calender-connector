@@ -226,6 +226,16 @@ def handle_custom_sync() -> None:
         )
         == "y"
     )
+    
+    check_duplicate = (
+        Prompt.ask(
+            "[bright_green]> 檢查並防止重複事件 [y/n][/bright_green]",
+            choices=["y", "n"],
+            default="y",
+            show_choices=False,
+        )
+        == "y"
+    )
 
     console.print("\n[bright_green]" + "-" * 70 + "[/bright_green]")
     console.print("[bright_green]>>> 設定完成，準備執行...[/bright_green]\n")
@@ -238,6 +248,7 @@ def handle_custom_sync() -> None:
     table.add_row("開始日期", start_date)
     table.add_row("結束日期", end_date)
     table.add_row("預覽模式", "ON" if preview else "OFF")
+    table.add_row("檢查重複事件", "ON" if check_duplicate else "OFF")
 
     console.print(table)
     console.print("\n[bright_green]" + "-" * 70 + "[/bright_green]\n")
@@ -262,6 +273,8 @@ def handle_custom_sync() -> None:
     ]
     if preview:
         args.append("--preview")
+    if not check_duplicate:
+        args.append("--no-check-duplicate")
 
     # 執行命令
     console.clear()
@@ -283,6 +296,9 @@ def sync(
     ),
     preview: bool = typer.Option(
         False, "--preview", "-p", help="預覽模式，不實際創建事件"
+    ),
+    check_duplicate: bool = typer.Option(
+        True, "--check-duplicate/--no-check-duplicate", help="檢查並防止重複創建事件"
     ),
 ) -> None:
     """
@@ -317,6 +333,15 @@ def sync(
     console.print(
         f"[bright_green]>>> 準備同步: {calculated_start_date} 到 {end_date_str}[/bright_green]\n"
     )
+    
+    if check_duplicate:
+        console.print(
+            f"[bright_green]>>> 檢查重複功能已啟用: 將防止重複創建相同事件[/bright_green]\n"
+        )
+    else:
+        console.print(
+            f"[bright_yellow]>>> 警告: 檢查重複功能已關閉，可能會創建重複事件[/bright_yellow]\n"
+        )
 
     try:
         client = TogglClient()
@@ -381,19 +406,46 @@ def sync(
             "[bright_green]>>> 連接到 Google Calendar...[/bright_green]", spinner="dots"
         ) as status:
             service = get_calendar_service()
+            total_created = 0
+            total_skipped = 0
 
             for i, entry in enumerate(entries, 1):
                 status.update(
-                    f"[bright_green]>>> 正在創建事件 {i}/{len(entries)}...[/bright_green]"
+                    f"[bright_green]>>> 處理事件 {i}/{len(entries)}...[/bright_green]"
                 )
 
-                create_event(
-                    service, entry["description"], entry["start"], entry["end"]
+                result = create_event(
+                    service, 
+                    entry["description"], 
+                    entry["start"], 
+                    entry["end"],
+                    check_duplicate=check_duplicate
                 )
+                
+                # 使用自定義標記來判斷是新建還是跳過
+                if check_duplicate and result:
+                    if result.get('is_existing', False):
+                        total_skipped += 1
+                    else:
+                        total_created += 1
+                else:
+                    total_created += 1
 
-        console.print(
-            f"\n[bright_green]>>> 成功! 同步了 {len(entries)} 個事件到 Google 日曆[/bright_green]"
-        )
+        if check_duplicate:
+            console.print(
+                f"\n[bright_green]>>> 成功! 處理 {len(entries)} 個事件[/bright_green]"
+            )
+            console.print(
+                f"[bright_green]>>> - 新建事件: {total_created} 個[/bright_green]"
+            )
+            console.print(
+                f"[bright_green]>>> - 跳過重複: {total_skipped} 個[/bright_green]"
+            )
+        else:
+            console.print(
+                f"\n[bright_green]>>> 成功! 同步了 {len(entries)} 個事件到 Google 日曆[/bright_green]"
+            )
+        
         console.print("[bright_green]" + "-" * 70 + "[/bright_green]")
         
         return_to_menu()

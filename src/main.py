@@ -30,7 +30,7 @@ def main() -> None:
         description = entry["description"]
         start = entry["start"]
         end = entry["end"]
-        create_event(service, description, start, end)
+        create_event(service, description, start, end, check_duplicate=True)
 
 
 if __name__ == "__main__":
