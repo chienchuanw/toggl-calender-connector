@@ -153,7 +153,8 @@ def display_menu() -> None:
         {"key": "2", "name": "同步過去 7 天的時間條目", "cmd": "sync --days 7"},
         {"key": "3", "name": "預覽模式（不實際創建事件）", "cmd": "sync --preview"},
         {"key": "4", "name": "自定義同步選項", "cmd": "custom"},
-        {"key": "5", "name": "列出並設置 Google 日曆", "cmd": "calendars"},
+        {"key": "5", "name": "查看當前 Toggl 計時", "cmd": "current"},
+        {"key": "6", "name": "列出並設置 Google 日曆", "cmd": "calendars"},
         {"key": "v", "name": "查看版本信息", "cmd": "version"},
         {"key": "q", "name": "退出程序", "cmd": "exit"},
     ]
@@ -457,6 +458,98 @@ def sync(
         
         return_to_menu()
         return
+
+
+@app.command()
+def current():
+    """顯示當前正在記錄的 Toggl 時間條目"""
+    console.clear()
+    
+    # 使用 pyfiglet 生成 ASCII 藝術標題
+    header_art = generate_header("Current Entry", "small")
+    console.print(f"[bright_green]{header_art}[/bright_green]")
+    console.print("[bright_green]" + "-" * 70 + "[/bright_green]\n")
+
+    client = TogglClient()
+    
+    with console.status(
+        "[bright_green]>>> 正在獲取當前 Toggl 計時...[/bright_green]",
+        spinner="dots",
+    ):
+        current_entry = client.get_current_time_entry()
+
+    if not current_entry:
+        console.print("[bright_yellow]>>> 目前沒有正在記錄的 Toggl 時間條目[/bright_yellow]")
+        return_to_menu()
+        return
+
+    # 計算當前條目已經運行的時間
+    start_time = current_entry["start"]
+    formatted_start = format_time_display(start_time)
+    
+    # 計算已經運行的時間
+    start_dt = datetime.fromisoformat(start_time.replace("Z", "+00:00"))
+    now_dt = datetime.now(start_dt.tzinfo)
+    duration_seconds = (now_dt - start_dt).total_seconds()
+    
+    # 格式化持續時間
+    hours, remainder = divmod(duration_seconds, 3600)
+    minutes, seconds = divmod(remainder, 60)
+    running_time = f"{int(hours):02d}:{int(minutes):02d}:{int(seconds):02d}"
+
+    # 創建表格顯示當前條目詳情
+    table = Table(title="當前時間條目", box=ASCII, border_style="bright_green")
+    table.add_column("屬性", style="bold cyan", no_wrap=True)
+    table.add_column("值", style="bright_white")
+
+    table.add_row("描述", current_entry["description"] or "[bold red]未設置描述[/bold red]")
+    table.add_row("開始時間", formatted_start)
+    table.add_row("已運行時間", running_time)
+    table.add_row("專案", current_entry["project"] or "無")
+    
+    # 如果有標籤，將它們顯示為逗號分隔的列表
+    tags_str = ", ".join(current_entry["tags"]) if current_entry["tags"] else "無"
+    table.add_row("標籤", tags_str)
+    
+    table.add_row("計費", "是" if current_entry["billable"] else "否")
+
+    console.print(table)
+    console.print("\n[bright_green]" + "-" * 70 + "[/bright_green]\n")
+    
+    # 顯示可用操作
+    console.print("[bright_green]>>> 可用操作：[/bright_green]")
+    console.print("1. 停止計時")
+    console.print("2. 返回主選單")
+    
+    # 獲取用戶選擇
+    choice = Prompt.ask(
+        "\n[bright_green]> 選擇操作[/bright_green]",
+        choices=["1", "2"],
+        default="2",
+        show_choices=False
+    )
+    
+    # 處理用戶選擇
+    if choice == "1":
+        # 停止計時
+        confirm = Confirm.ask("[bright_green]>>> 確定要停止當前計時嗎？[/bright_green]")
+        if confirm:
+            with console.status(
+                "[bright_green]>>> 正在停止計時...[/bright_green]",
+                spinner="dots",
+            ):
+                success = client.stop_current_time_entry()
+            
+            if success:
+                console.print("[bright_green]>>> 已成功停止計時[/bright_green]")
+            else:
+                console.print("[bright_red]>>> 停止計時失敗[/bright_red]")
+                console.print("[bright_yellow]>>> 請檢查網絡連接或在 Toggl 網站/應用中停止[/bright_yellow]")
+        
+        return_to_menu()
+    else:
+        # 返回主選單
+        display_menu()
 
 
 @app.command()
