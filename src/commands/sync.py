@@ -45,6 +45,17 @@ def sync(
     else:
         calculated_start_date = start_date if start_date else today.strftime("%Y-%m-%d")
         end_date_str = end_date if end_date else calculated_start_date
+        
+    # 確保結束日期不超過今天，避免查詢未來的時間條目
+    today_str = today.strftime("%Y-%m-%d")
+    if end_date_str > today_str:
+        end_date_str = today_str
+        console.print(f"[bright_yellow]>>> 注意: 將結束日期限制為今天 ({today_str})[/bright_yellow]")
+        
+    # 確保開始日期不超過結束日期
+    if calculated_start_date > end_date_str:
+        calculated_start_date = end_date_str
+        console.print(f"[bright_yellow]>>> 注意: 將開始日期調整為結束日期 ({end_date_str})[/bright_yellow]")
 
     console.print(
         f"[bright_green]>>> 準備同步: {calculated_start_date} 到 {end_date_str}[/bright_green]\n"
@@ -126,4 +137,6 @@ def sync(
 
     except Exception as e:
         console.print(f"[bright_red]>>> 錯誤: {e}[/bright_red]")
+        console.print("[bright_yellow]>>> 注意: 如果是 API 錯誤，請確保 Toggl API 令牌和工作區 ID 正確[/bright_yellow]")
+        console.print("[bright_yellow]>>> 檢查 .env 文件中 TOGGL_API_TOKEN 和 TOGGL_WORKSPACE_ID 設置[/bright_yellow]")
         return return_to_menu()
